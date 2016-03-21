@@ -8,10 +8,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-/**
- * java.io.IOException: Type mismatch in value from map: expected org.apache.hadoop.io.Text, 
- * received org.apache.hadoop.io.DoubleWritable
- */
 public class CSVCombineFileMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
 	
 	/**

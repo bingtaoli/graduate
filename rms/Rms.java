@@ -3,6 +3,7 @@ package rms;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DoubleWritable;
 //import org.apache.hadoop.io.DoubleWritable;
 //import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -30,12 +31,13 @@ public class Rms extends Configured implements Tool {
 	    job.setJobName("CSVTest");
 	    job.setJarByClass(Rms.class);
 	    
+	    job.setInputFormatClass(CSVCombineFileInputFormat.class);
 	    job.setMapperClass(CSVCombineFileMapper.class);
 	    job.setReducerClass(CSVReducer.class);
 	    
+	    //该设置是针对map的输出？醉了.
 	    job.setOutputKeyClass(Text.class);
-	    job.setOutputValueClass(Text.class);
-	    job.setInputFormatClass(CSVCombineFileInputFormat.class);
+	    job.setOutputValueClass(DoubleWritable.class);
 	    
 	    //job.setNumReduceTasks(0);
 

@@ -75,7 +75,7 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		RMS = RMS / valueList.size();
 		//1.3开方
 		RMS = Math.sqrt(RMS);
-		//2. 峰峰值
+		//峰峰值
 		for (int i = 0; i < valueList.size(); i++){
 			if (valueList.get(i) > MAX){
 				MAX = valueList.get(i);
@@ -87,15 +87,22 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		double XPP = MAX - MIN;
 		//波形指数
 		double AVERAGE = getListAverage(valueList);
-		double SF  = RMS / Math.abs(AVERAGE); 
+		double SF = 0;
+		if (AVERAGE != 0){
+			//avoid infinity
+			SF  = RMS / Math.abs(AVERAGE); 
+		}
 		//峰值指标
-		double CF = MAX / MIN;
+		double CF = MAX / RMS;
 		//脉冲指标
-		double IF = RMS / AVERAGE;
+		double IF = 0;
+		if (AVERAGE != 0){
+			 IF = RMS / AVERAGE;
+		}
 		//裕度因子
 		double XR = 0;
 		for (int i = 0; i < valueList.size(); i++){
-			XR += Math.sqrt(valueList.get(i));
+			XR += Math.sqrt(Math.abs(valueList.get(i)));
 		}
 		XR = XR / valueList.size();
 		XR = Math.pow(XR, 2);
@@ -109,7 +116,7 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		double KV = BEIDA / Math.pow(RMS, 4);
 		
 		String join = String.join(", ", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
-				String.valueOf(CF),String.valueOf(IF), String.valueOf(CLF),String.valueOf(KV));
+				String.valueOf(CF), String.valueOf(IF), String.valueOf(CLF), String.valueOf(KV));
 		resultArrayString.set(join);
 		
 	    //result.set(RMS);
