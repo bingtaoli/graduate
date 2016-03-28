@@ -18,15 +18,17 @@ public class CSVCombineFileMapper extends Mapper<LongWritable, Text, Text, Doubl
 	public static DoubleWritable resultValue = new DoubleWritable();
 	public static Text resultKey = new Text();
 	public static int number = 0;
+	public int index = -1;
 	
 	public CSVCombineFileMapper() {
 		// TODO Auto-generated constructor stub
 		System.out.println("create a mapper>>>>>>>> NO: " + number);
+		index = number;
 		number++;
 	}
 	
 	protected void finalize(){
-		System.out.println(">>>>>>>>>end of mapper NO:" + number);
+		System.out.println(">>>>>>>>>end of mapper NO:" + index);
 	}
 	
 	@Override
