@@ -119,7 +119,7 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		BEIDA = BEIDA / valueList.size();
 		double KV = BEIDA / Math.pow(RMS, 4);
 		
-		String join = String.join(", ", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
+		String join = MyString.join(", ", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
 				String.valueOf(CF), String.valueOf(IF), String.valueOf(CLF), String.valueOf(KV));
 		resultArrayString.set(join);
 		
