@@ -1,7 +1,6 @@
 package rms;
 
 import java.util.Objects;
-import java.util.StringJoiner;
 
 public class MyString {
 	
@@ -9,7 +8,7 @@ public class MyString {
         Objects.requireNonNull(delimiter);
         Objects.requireNonNull(elements);
         // Number of elements not likely worth Arrays.stream overhead.
-        StringJoiner joiner = new StringJoiner(delimiter);
+        MyStringJoiner joiner = new MyStringJoiner(delimiter);
         for (CharSequence cs: elements) {
             joiner.add(cs);
         }
