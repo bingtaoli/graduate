@@ -16,10 +16,6 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 	//private DoubleWritable result = new DoubleWritable();
 	private Text resultArrayString = new Text();
 	public static double costMapperTime = 0;
-	
-	public CSVReducer() {
-		// TODO Auto-generated constructor stub
-	}
 
 	protected void finalize(){
 		System.out.println(">>>>>>>>>end of reducer");
@@ -71,7 +67,8 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 				valueList.set(i, valueList.get(i-1));
 			}
 		}
-		
+		//更新均值
+		double AVERAGE = getListAverage(valueList);
 		//均方根
 		//a.平方和
 		for (int i = 0; i < valueList.size(); i++){
@@ -92,7 +89,6 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		}
 		double XPP = MAX - MIN;
 		//波形指数
-		double AVERAGE = getListAverage(valueList);
 		double SF = 0;
 		if (AVERAGE != 0){
 			//avoid infinity
@@ -121,11 +117,10 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		BEIDA = BEIDA / valueList.size();
 		double KV = BEIDA / Math.pow(RMS, 4);
 		
+		//NOTE 现在的顺序决定了第二个job的获取数据顺序，不能随便更改!
 		String join = MyString.join(", ", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
 				String.valueOf(CF), String.valueOf(IF), String.valueOf(CLF), String.valueOf(KV));
 		resultArrayString.set(join);
-		
-	    //result.set(RMS);
 	    context.write(key, resultArrayString);
 	}
 	
