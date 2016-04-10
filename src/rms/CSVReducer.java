@@ -9,6 +9,8 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import utils.MyString;
+
 public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 	
 	//private DoubleWritable result = new DoubleWritable();

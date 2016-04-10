@@ -11,6 +11,8 @@ import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
+import utils.MyTimer;
+
 /**
  * 耗时记录
  * 100个文件: cost time: 6.348
