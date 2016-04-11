@@ -2,6 +2,7 @@ package rms;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -35,14 +36,14 @@ public class Rms {
 		Configuration conf = new Configuration();
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 	    if (otherArgs.length < 2) {
-	    	System.err.println("Usage: csv <in> <out>");
+	    	System.err.println("Usage: <in> <out>");
 	    	System.exit(2);
 	    }
 	    
 	    /**
 	     * first job 
 	     */
-		Job job = Job.getInstance(conf, "CSVTest");
+		Job job = Job.getInstance(conf, "first job");
 	    job.setJarByClass(Rms.class);
 	    
 	    job.setInputFormatClass(CSVCombineFileInputFormat.class);
@@ -55,7 +56,7 @@ public class Rms {
 	    FileInputFormat.setInputPaths(job, new Path(args[0]));
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    job.waitForCompletion(true);
-	    ControlledJob ctrljob1=new  ControlledJob(conf);   
+	    ControlledJob ctrljob1 = new  ControlledJob(conf);   
         ctrljob1.setJob(job);
         
 	    /**
@@ -66,21 +67,21 @@ public class Rms {
 	    
 	    job2.setInputFormatClass(CSVCombineFileInputFormat.class);
 	    job2.setMapperClass(SecondJobMapper.class);
-	    //job2.setReducerClass(CSVReducer.class);
+	    job2.setReducerClass(SecondReducer.class);
 	    
 	    job2.setOutputKeyClass(Text.class);
-	    job2.setOutputValueClass(DoubleWritable.class);
-	    job2.setNumReduceTasks(0);
+	    job2.setOutputValueClass(ArrayWritable.class);
+	    //job2.setNumReduceTasks(0);
         FileInputFormat.addInputPath(job2, new Path(args[1]));  
         FileOutputFormat.setOutputPath(job2,new Path(args[2]) ); 
 	    job2.waitForCompletion(true);
-	    ControlledJob ctrljob2 =new  ControlledJob(conf);   
+	    ControlledJob ctrljob2 = new ControlledJob(conf);   
         ctrljob2.setJob(job2);
         
         //依赖关系
         ctrljob2.addDependingJob(ctrljob1);
         
-        JobControl jobCtrl=new JobControl("myctrl");   
+        JobControl jobCtrl = new JobControl("myctrl");   
         jobCtrl.addJob(ctrljob1);   
         jobCtrl.addJob(ctrljob2); 
         

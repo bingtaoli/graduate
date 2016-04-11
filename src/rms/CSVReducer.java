@@ -118,9 +118,13 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		double KV = BEIDA / Math.pow(RMS, 4);
 		
 		//NOTE 现在的顺序决定了第二个job的获取数据顺序，不能随便更改!
-		String join = MyString.join(", ", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
+		String join = MyString.join(",", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
 				String.valueOf(CF), String.valueOf(IF), String.valueOf(CLF), String.valueOf(KV));
 		resultArrayString.set(join);
+		/**
+		 * TODO
+		 * key value之间使用逗号分隔，否则在second mapper中split by comma会出现问题
+		 */
 	    context.write(key, resultArrayString);
 	}
 	
