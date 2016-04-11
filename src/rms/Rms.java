@@ -56,47 +56,21 @@ public class Rms {
 	    FileInputFormat.setInputPaths(job, new Path(args[0]));
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    job.waitForCompletion(true);
-	    ControlledJob ctrljob1 = new ControlledJob(conf);   
-        ctrljob1.setJob(job);
         
 	    /**
 	     * second job
 	     */
-        Job job2 = Job.getInstance(conf, "second job");
+	    Configuration conf2 = new Configuration();
+        Job job2 = Job.getInstance(conf2, "second job");
 	    job2.setJarByClass(Rms.class);
 	    job2.setInputFormatClass(CSVCombineFileInputFormat.class);
 	    job2.setMapperClass(SecondJobMapper.class);
 	    job2.setReducerClass(SecondReducer.class);
 	    job2.setOutputKeyClass(Text.class);
 	    job2.setOutputValueClass(ArrayWritable.class);
-        FileInputFormat.addInputPath(job2, new Path(args[1]));  
-        FileOutputFormat.setOutputPath(job2, new Path(args[2]) ); 
-	    job2.waitForCompletion(true);
-	    ControlledJob ctrljob2 = new ControlledJob(conf);   
-        ctrljob2.setJob(job2);
-        
-        /**
-         * dependency
-         */
-        ctrljob2.addDependingJob(ctrljob1);
-        
-        /**
-         * jobctrl
-         */
-        JobControl jobCtrl = new JobControl("myctrl");   
-        jobCtrl.addJob(ctrljob1);   
-        //jobCtrl.addJob(ctrljob2); 
-        
-        Thread  t = new Thread(jobCtrl);   
-        t.start();
-        
-        while(true){   
-            if(jobCtrl.allFinished()){
-	            System.out.println("finished, quit now.");   
-	            jobCtrl.stop();
-	            break;   
-            }  
-        }
+        FileInputFormat.addInputPath(job2, new Path(args[1]));
+        FileOutputFormat.setOutputPath(job2, new Path(args[2]) );
+        job2.waitForCompletion(true);
         
 	    System.out.println("cost time: " + MyTimer.getCost("all") / 1000 + "s");
 	    System.exit(1);
