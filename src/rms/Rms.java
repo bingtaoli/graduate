@@ -24,6 +24,9 @@ import utils.MyTimer;
  * job.setOutputKeyClass是针对map输出的结果设定
  * job.waitForCompletion(true)一定在设置完输出文件目录后
  * 
+ * API:
+ * job.setNumReduceTasks(0);
+ * 
  */
 public class Rms {
 	
@@ -45,18 +48,15 @@ public class Rms {
 	     */
 		Job job = Job.getInstance(conf, "first job");
 	    job.setJarByClass(Rms.class);
-	    
 	    job.setInputFormatClass(CSVCombineFileInputFormat.class);
 	    job.setMapperClass(CSVCombineFileMapper.class);
 	    job.setReducerClass(CSVReducer.class);
-	    
 	    job.setOutputKeyClass(Text.class);
 	    job.setOutputValueClass(DoubleWritable.class);
-	    //job.setNumReduceTasks(0);
 	    FileInputFormat.setInputPaths(job, new Path(args[0]));
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    job.waitForCompletion(true);
-	    ControlledJob ctrljob1 = new  ControlledJob(conf);   
+	    ControlledJob ctrljob1 = new ControlledJob(conf);   
         ctrljob1.setJob(job);
         
 	    /**
@@ -64,34 +64,35 @@ public class Rms {
 	     */
         Job job2 = Job.getInstance(conf, "second job");
 	    job2.setJarByClass(Rms.class);
-	    
 	    job2.setInputFormatClass(CSVCombineFileInputFormat.class);
 	    job2.setMapperClass(SecondJobMapper.class);
 	    job2.setReducerClass(SecondReducer.class);
-	    
 	    job2.setOutputKeyClass(Text.class);
 	    job2.setOutputValueClass(ArrayWritable.class);
-	    //job2.setNumReduceTasks(0);
         FileInputFormat.addInputPath(job2, new Path(args[1]));  
-        FileOutputFormat.setOutputPath(job2,new Path(args[2]) ); 
+        FileOutputFormat.setOutputPath(job2, new Path(args[2]) ); 
 	    job2.waitForCompletion(true);
 	    ControlledJob ctrljob2 = new ControlledJob(conf);   
         ctrljob2.setJob(job2);
         
-        //依赖关系
+        /**
+         * dependency
+         */
         ctrljob2.addDependingJob(ctrljob1);
         
+        /**
+         * jobctrl
+         */
         JobControl jobCtrl = new JobControl("myctrl");   
         jobCtrl.addJob(ctrljob1);   
-        jobCtrl.addJob(ctrljob2); 
+        //jobCtrl.addJob(ctrljob2); 
         
         Thread  t = new Thread(jobCtrl);   
         t.start();
         
         while(true){   
             if(jobCtrl.allFinished()){
-            	//如果作业成功完成，就打印成功作业的信息
-	            System.out.println("successful job list: " + jobCtrl.getSuccessfulJobList());   
+	            System.out.println("finished, quit now.");   
 	            jobCtrl.stop();
 	            break;   
             }  

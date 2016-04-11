@@ -45,7 +45,8 @@ public class CSVCombineFileMapper extends Mapper<LongWritable, Text, Text, Doubl
 		 */
 		String time;
 		if (values.length >= 5){
-			time =  String.format("%02d%02d%02d", Integer.valueOf(values[0]) ,
+			//增加一个逗号，方便后面split
+			time =  String.format("%02d%02d%02d,", Integer.valueOf(values[0]) ,
 					Integer.valueOf(values[1]), Integer.valueOf(values[2]));
 			resultKey.set(time);
 			//2. 当前行的倒数第二列

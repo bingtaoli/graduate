@@ -108,7 +108,10 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		}
 		XR = XR / valueList.size();
 		XR = Math.pow(XR, 2);
-		double CLF = MAX / XR;
+		double CLF = 0;
+		if (XR != 0){
+			CLF = MAX / XR;
+		}
 		//峭度因子
 		double BEIDA = 0;
 		for (int i = 0; i < valueList.size(); i++){
@@ -121,10 +124,6 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		String join = MyString.join(",", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
 				String.valueOf(CF), String.valueOf(IF), String.valueOf(CLF), String.valueOf(KV));
 		resultArrayString.set(join);
-		/**
-		 * TODO
-		 * key value之间使用逗号分隔，否则在second mapper中split by comma会出现问题
-		 */
 	    context.write(key, resultArrayString);
 	}
 	
