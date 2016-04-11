@@ -2,7 +2,6 @@ package rms;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -10,6 +9,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
+import utils.DoubleArrayWritable;
 import utils.MyTimer;
 
 /**
@@ -65,7 +65,7 @@ public class Rms {
 	    job2.setMapperClass(SecondJobMapper.class);
 	    job2.setReducerClass(SecondReducer.class);
 	    job2.setOutputKeyClass(Text.class);
-	    job2.setOutputValueClass(ArrayWritable.class);
+	    job2.setOutputValueClass(DoubleArrayWritable.class);
         FileInputFormat.addInputPath(job2, new Path(args[1]));
         FileOutputFormat.setOutputPath(job2, new Path(args[2]) );
         job2.waitForCompletion(true);

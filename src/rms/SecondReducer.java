@@ -4,16 +4,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.io.ArrayWritable;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import algorithm.Normalization;
 import algorithm.Pca;
+import utils.DoubleArrayWritable;
 
-public class SecondReducer extends Reducer<Text, ArrayWritable, Text, Text> {
+public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
 	
-	public void reduce(Text key, Iterable<ArrayWritable> values,  Context context) 
+	public void reduce(Text key, Iterable<DoubleArrayWritable> values,  Context context) 
 			throws IOException, InterruptedException {
 		
 		List<Double> RMSList = new ArrayList<>();
@@ -25,30 +26,34 @@ public class SecondReducer extends Reducer<Text, ArrayWritable, Text, Text> {
 		List<Double> KVList = new ArrayList<>();
 		//TODO 不用每个分别一个名称
 		List<List<Double>> allList = new ArrayList<>();
-		allList.set(0, RMSList);
-		allList.set(1, XPPList);
-		allList.set(2, SFList);
-		allList.set(3, CFList);
-		allList.set(4, IFList);
-		allList.set(5, CLFList);
-		allList.set(6, KVList);
+		allList.add(RMSList);
+		allList.add(XPPList);
+		allList.add(SFList);
+		allList.add(CFList);
+		allList.add(IFList);
+		allList.add(CLFList);
+		allList.add(KVList);
 		
 		int length = 0;
+		
 		//转换成List
-		List<double[]> valueList = new ArrayList<>();
-		for (ArrayWritable val : values) {
+		List<DoubleWritable[]> valueList = new ArrayList<>();
+		
+		for (DoubleArrayWritable val : values) {
 			//链表每一个元素都是数组
-			double[] temp = (double[]) val.toArray();
+			DoubleWritable[] temp = (DoubleWritable[]) val.toArray();
 			valueList.add(temp);
 			length++;
 		}
+		
 		for (int i = 0; i < valueList.size(); i++){
-			double[] temp = valueList.get(i);
+			DoubleWritable[] temp = valueList.get(i);
 			for (int j = 0; j < allList.size(); j++){
 				//第一个是时间，略过
-				allList.get(j).add(temp[j+1]);
+				allList.get(j).add(temp[j+1].get());
 			}
 		}
+		
 		//归一化
 		for (int i = 0; i < allList.size(); i++){
 			allList.set(i, Normalization.normalizatioList(allList.get(i)));
