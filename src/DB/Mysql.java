@@ -13,7 +13,7 @@ public class Mysql {
 	}
 	
 	public Mysql(String username, String password){
-		connectUrl = "jdbc:mysql://localhost/test?"+"user="+username+"&password"+password;
+		connectUrl = "jdbc:mysql://localhost/test?"+"user="+username+"&password="+password;
 	}
 	
 	public void initConnection(){

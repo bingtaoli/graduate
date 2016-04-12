@@ -12,6 +12,11 @@ import algorithm.Normalization;
 import algorithm.Pca;
 import utils.DoubleArrayWritable;
 
+/**
+ * 第二个job输出是pca后得到的矩阵
+ * @author libingtao
+ *
+ */
 public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
 	
 	public void reduce(Text key, Iterable<DoubleArrayWritable> values,  Context context) 
@@ -66,5 +71,6 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 			}
 		}
 		Pca.calculate(array);
+		
 	}
 }
