@@ -35,8 +35,7 @@ public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArra
 		for (int i = 0; i < values.length; i++){
 			//第一列是时间，也保留，时间是int类型，但是double也可以解析
 			double temp = Double.valueOf(values[i]);
-			DoubleWritable di = arr[i];
-			di.set(temp);
+			arr[i].set(temp);
 		}
 		//not static
 		resultValue = new DoubleArrayWritable(arr);
