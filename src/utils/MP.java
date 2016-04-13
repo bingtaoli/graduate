@@ -11,4 +11,12 @@ public class MP {
 		System.out.println(obj);
 	}
 	
+	public static void println(){
+		System.out.println("");
+	}
+	
+	public static void print(Object obj){
+		System.out.print(obj);
+	}
+	
 }

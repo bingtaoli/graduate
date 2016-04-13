@@ -19,6 +19,9 @@ import utils.DoubleArrayWritable;
  */
 public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
 	
+	private static Text resultKey = new Text("");
+	private static Text resultValue = new Text("");
+	
 	public void reduce(Text key, Iterable<DoubleArrayWritable> values,  Context context) 
 			throws IOException, InterruptedException {
 		
@@ -70,7 +73,14 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 				array[i][j] = allList.get(j).get(i);
 			}
 		}
-		Pca.calculate(array);
-		
+	    double result[][] = Pca.calculate(array);
+	    for (int i = 0; i < result.length; i++){
+	    	String temp = "";
+	    	for (int j = 0; j < result[i].length; j++){
+	    		temp += " " + String.valueOf(result[i][j]);
+	    	}
+	    	resultValue.set(temp);
+	    	context.write(resultKey, resultValue);
+	    }
 	}
 }

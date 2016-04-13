@@ -8,6 +8,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import utils.DoubleArrayWritable;
+import utils.MP;
 
 public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArrayWritable>  {
 	
@@ -19,7 +20,6 @@ public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArra
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 	  throws IOException, InterruptedException {
-		System.out.println("second job mapper>>>>>>>>>>>>>>>>>>>");
 		// a. 分隔一行
 		String s = value.toString();
 		String[] values = s.split(",");
@@ -36,12 +36,16 @@ public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArra
 			//第一列是时间，也保留，时间是int类型，但是double也可以解析
 			double temp = Double.valueOf(values[i]);
 			DoubleWritable di = arr[i];
-			di.set(temp);;
+			di.set(temp);
 		}
 		//not static
 		resultValue = new DoubleArrayWritable(arr);
+		MP.println("result value is:" );
+		for (int i = 0; i < arr.length; i++){
+			MP.print(arr[i] + " ");
+		}
+		MP.println();
 		context.write(resultKey, resultValue);
-		System.out.println("second job mapper end >>>>>>>>>>>>>>>>>>>");
 	}
 	
 }
