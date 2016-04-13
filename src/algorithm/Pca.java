@@ -22,10 +22,32 @@ public class Pca {
 		System.out.println("");
 	}
 
+	/**
+	 * pca主要是三步
+	 * http://www.cnblogs.com/zhangchaoyang/articles/2222048.html
+	 * 1. 特征中心化。即每一维的数据都减去该维的均值，这里的“维”指的就是一个特征（或属性），变换之后每一维的均值都变成了0。
+	 * 2. 协方差矩阵
+	 * 3. 特征值和特征向量
+	 * @param array
+	 * @return
+	 */
 	public static double[][] calculate(double[][] array){
+		
+		//1. 特征中心化。即每一维的数据都减去该维的均值
+		for (int i = 0; i < array.length; i++){
+			double sum = 0;
+			for (int j = 0; j < array[i].length; j++){
+				sum += array[i][j];
+			}
+			double average = sum / array[i].length;
+			for (int j = 0; j < array[i].length; j++){
+				array[i][j] -= average;
+			}
+		}
+		
 		Matrix m = Matrix.Factory.linkToArray(array);
 		
-		//协方差矩阵
+		//2. 协方差矩阵
 		System.out.println("协方差矩阵: ");
 		Covariance cov = new Covariance(array);
 		
@@ -53,8 +75,8 @@ public class Pca {
 			e.printStackTrace();
 		}
 		
+		//3. 特征值和特征向量
 		Matrix V = eigenValueDecomposition[0];
-		//特征值
 		Matrix D = eigenValueDecomposition[1];
 		
 		/**
@@ -103,15 +125,13 @@ public class Pca {
 				kd[i-k][j] = V.getAsDouble(i, j);
 			}
 		}
-		//kD变换为矩阵
+		
+		//kd变换为矩阵
 		Matrix km = Matrix.Factory.linkToArray(kd);
 		//转置，参见http://www.cnblogs.com/jerrylead/archive/2011/04/18/2020209.html
+		//原来是k*m， 转变成m*k矩阵，所以最终结果才能是m行k列的矩阵
 		km = km.transpose();
 
-		//假设样例数为m，特征数为n，减去均值后的样本矩阵为DataAdjust(m*n)
-		//TODO
-		//Matrix DataAdjust = DenseMatrix.Factory.zeros(m.getRowCount(), m.getColumnCount());
-		
 		Matrix finalData = DenseMatrix.Factory.zeros(m.getRowCount(), k);
 		finalData = m.mtimes(km);
 		System.out.println("final data is:");
