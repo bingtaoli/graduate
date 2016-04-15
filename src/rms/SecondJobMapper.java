@@ -39,11 +39,13 @@ public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArra
 		}
 		//not static
 		resultValue = new DoubleArrayWritable(arr);
+		MP.closeDebug();
 		MP.println("result value is:" );
 		for (int i = 0; i < arr.length; i++){
 			MP.print(arr[i] + " ");
 		}
 		MP.println();
+		MP.debug();
 		context.write(resultKey, resultValue);
 	}
 	

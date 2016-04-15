@@ -9,6 +9,8 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import algorithm.Average;
+import utils.MP;
 import utils.MyString;
 
 public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
@@ -21,15 +23,6 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		System.out.println(">>>>>>>>>end of reducer");
 	}
 
-	public double getListAverage(List<Double> list){
-		 int num = list.size();
-		 int sum = 0;
-		 for(int i = 0;i < num;i++){
-           sum += list.get(i);
-		 }
-		 return (double)(sum / num);
-	 }
-	
 	//先求和均值差的平方和
 	//除N
 	//开方
@@ -54,7 +47,8 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		for (DoubleWritable val : values) {
 			valueList.add(val.get());
 		}
-		double tempAverage = getListAverage(valueList);
+		double tempAverage = Average.getListAverage(valueList);
+		MP.println("temp average is " + tempAverage);
 		double sigma = getListStandardDevition(valueList, tempAverage);
 		//踢除奇异点
 		//a.第一行特殊处理
@@ -68,7 +62,8 @@ public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 			}
 		}
 		//更新均值
-		double AVERAGE = getListAverage(valueList);
+		double AVERAGE = Average.getListAverage(valueList);
+		MP.println("average is " + AVERAGE);
 		//均方根
 		//a.平方和
 		for (int i = 0; i < valueList.size(); i++){

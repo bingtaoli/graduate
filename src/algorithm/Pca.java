@@ -7,6 +7,8 @@ import org.apache.commons.math3.stat.correlation.Covariance;
 import org.ujmp.core.DenseMatrix;
 import org.ujmp.core.Matrix;
 
+import utils.MP;
+
 /**
  * 将样本点投影到选取的特征向量上。假设样例数为m，特征数为n，减去均值后的样本矩阵为DataAdjust(m*n)，协方差矩阵是n*n，
  * 选取的k个特征向量组成的矩阵为EigenVectors(n*k)。那么投影后的数据FinalData为:
@@ -18,10 +20,6 @@ public class Pca {
 	
 	private static double PRECISE = 0.8;
 	
-	public static void printNewLine(){
-		System.out.println("");
-	}
-
 	/**
 	 * pca主要是三步
 	 * http://www.cnblogs.com/zhangchaoyang/articles/2222048.html
@@ -32,6 +30,8 @@ public class Pca {
 	 * @return
 	 */
 	public static double[][] calculate(double[][] array){
+		
+		MP.closeDebug();
 		
 		//1. 特征中心化。即每一维的数据都减去该维的均值
 		for (int i = 0; i < array.length; i++){
@@ -48,12 +48,12 @@ public class Pca {
 		Matrix m = Matrix.Factory.linkToArray(array);
 		
 		//2. 协方差矩阵
-		System.out.println("协方差矩阵: ");
+		MP.println("协方差矩阵: ");
 		Covariance cov = new Covariance(array);
 		
 		RealMatrix covResult = cov.getCovarianceMatrix();
-		System.out.println(covResult);
-		printNewLine();
+		MP.println(covResult);
+		MP.println();
 		
 		/**
 		 * NOTE
@@ -97,11 +97,13 @@ public class Pca {
 			}
 		}
 		Arrays.sort(ans);
-		System.out.println("ans is:");
+		
+		MP.println("ans is:");
 		for (int i = 0; i < ans.length; i++){
-			System.out.println(ans[i]);
+			MP.println(ans[i]);
 		}
-		printNewLine();
+		
+		MP.println();
 		double sum = 0;
 		for (int i = 0; i < ans.length; i++){
 			sum += ans[i];
@@ -134,10 +136,13 @@ public class Pca {
 
 		Matrix finalData = DenseMatrix.Factory.zeros(m.getRowCount(), k);
 		finalData = m.mtimes(km);
-		System.out.println("final data is:");
-		System.out.println(finalData);
+		MP.println("final data is:");
+		MP.println(finalData);
 		
 		double[][] result = finalData.toDoubleArray();
+		
+		MP.debug();
+		
 		return result;
 	}
 	

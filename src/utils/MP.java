@@ -6,17 +6,33 @@ package utils;
  * for remove ugly System.out :) 
  */
 public class MP {
+	
+	public static boolean DEBUG = true;
+	
+	public static void debug(){
+		DEBUG = true;
+	}
+	
+	public static void closeDebug(){
+		DEBUG = false;
+	}
 
 	public static void println(Object obj){
-		System.out.println(obj);
+		if (DEBUG){
+			System.out.println(obj);
+		}
 	}
 	
 	public static void println(){
-		System.out.println("");
+		if (DEBUG){
+			System.out.println("");
+		}
 	}
 	
 	public static void print(Object obj){
-		System.out.print(obj);
+		if (DEBUG){
+			System.out.print(obj);
+		}
 	}
 	
 }
