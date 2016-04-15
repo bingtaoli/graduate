@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -62,15 +66,31 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 			}
 		}
 		
+		Configuration conf = new Configuration();
+		FileSystem hdfs = FileSystem.get(conf);
+		Path normalizationOutputDir = new Path("/output/normalization.txt");
+		FSDataOutputStream out = hdfs.create(normalizationOutputDir);
+		out.writeBytes("normalization result: \n");
 		//归一化
 		for (int i = 0; i < allList.size(); i++){
 			allList.set(i, Normalization.normalizatioList(allList.get(i)));
 		}
+		// 归一化结果输出到HDFS中
+		String s;
+		for (int i = 0; i < valueList.size(); i++){
+			s = " ";
+			for (int j = 0; j < allList.size(); j++){
+				s += allList.get(j).get(i) + " ";
+			}
+			out.writeBytes(s + "\n");
+		}
+		
 		//主成分分析
 		double[][] array = new double[length][allList.size()];
 		for (int i = 0; i < length; i++){
 			for (int j = 0; j < allList.size(); j++){
 				array[i][j] = allList.get(j).get(i);
+				
 			}
 		}
 	    double result[][] = Pca.calculate(array);
