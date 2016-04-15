@@ -18,6 +18,7 @@ import algorithm.Normalization;
 import algorithm.Pca;
 import utils.ArrayToStr;
 import utils.DoubleArrayWritable;
+import utils.MP;
 
 /**
  * 第二个job输出是pca后得到的矩阵
@@ -97,18 +98,24 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 		}
 	    double result[][] = Pca.calculate(array);
 	    
+	    //数组encode成str
 	    String encodedStr = ArrayToStr.encodeTwoDimensionArray(result);
 	    
 	    //写进数据库中
 	    Mysql db = new Mysql("test", "root");
 	    db.initConnection();
-//	    String sql = "insert into table hadoop(pcaResult) values (" ;
-//	    try {
-//			//db.getStmt().executeUpdate(sql);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+	    //do not missing ' ' to wrap encodeStr
+	    String sql = "insert into hadoop(pcaResult) " + "values ('" + encodedStr + "');";
+	    
+	    try {
+	    	MP.println("execute sql: " + sql);
+			db.getStmt().executeUpdate(sql);
+			MP.println("insert to db  success success success!!");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			MP.println("insert to db failure failure failure :(");
+			e.printStackTrace();
+		}
 	    
 	    for (int i = 0; i < result.length; i++){
 	    	String temp = "";
