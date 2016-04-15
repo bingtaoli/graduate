@@ -1,6 +1,7 @@
 package rms;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,10 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import DB.Mysql;
 import algorithm.Normalization;
 import algorithm.Pca;
+import utils.ArrayToStr;
 import utils.DoubleArrayWritable;
 
 /**
@@ -90,10 +93,23 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 		for (int i = 0; i < length; i++){
 			for (int j = 0; j < allList.size(); j++){
 				array[i][j] = allList.get(j).get(i);
-				
 			}
 		}
 	    double result[][] = Pca.calculate(array);
+	    
+	    String encodedStr = ArrayToStr.encodeTwoDimensionArray(result);
+	    
+	    //写进数据库中
+	    Mysql db = new Mysql("test", "root");
+	    db.initConnection();
+//	    String sql = "insert into table hadoop(pcaResult) values (" ;
+//	    try {
+//			//db.getStmt().executeUpdate(sql);
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+	    
 	    for (int i = 0; i < result.length; i++){
 	    	String temp = "";
 	    	for (int j = 0; j < result[i].length; j++){
