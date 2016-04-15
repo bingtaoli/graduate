@@ -8,11 +8,11 @@ public class Mysql {
 	private Connection con = null;
 	private Statement stmt = null;
 	
-	public Mysql(String username, String dbName){
+	public Mysql(String dbName, String username){
 		connectUrl = "jdbc:mysql://localhost/" + dbName + "?user=" + username;
 	}
 	
-	public Mysql(String username, String password, String dbName){
+	public Mysql(String dbName, String username, String password){
 		connectUrl = "jdbc:mysql://localhost/"+ dbName + "?user=" + username + "&password=" + password;
 	}
 	
