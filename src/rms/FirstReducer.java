@@ -13,7 +13,7 @@ import algorithm.Average;
 import utils.MP;
 import utils.MyString;
 
-public class CSVReducer extends Reducer<Text, DoubleWritable, Text, Text> {
+public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 	
 	//private DoubleWritable result = new DoubleWritable();
 	private Text resultArrayString = new Text();

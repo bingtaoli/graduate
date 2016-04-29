@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 /**
  * CustomInputformat which implements the createRecordReader of abstract class CombineFileInputFormat
  */
-public class CSVCombineFileInputFormat extends CombineFileInputFormat<LongWritable, Text> {
+public class MyCombineFileInputFormat extends CombineFileInputFormat<LongWritable, Text> {
 
     public static class MyRecordReader extends RecordReader<LongWritable,Text>{
     	

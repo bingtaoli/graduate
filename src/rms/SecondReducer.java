@@ -12,6 +12,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.rosuda.JRI.REXP;
+import org.rosuda.JRI.Rengine;
+import org.ujmp.core.DenseMatrix;
+import org.ujmp.core.Matrix;
 
 import DB.Mysql;
 import algorithm.Normalization;
@@ -22,15 +26,148 @@ import utils.MP;
 
 /**
  * 第二个job输出是pca后得到的矩阵
- * @author libingtao
- *
+ * @author matthew
+ * 
  */
 public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
+	
+	public static int EIGENVALUECOUNT = 7;  //特征值个数
 	
 	private static Text resultKey = new Text("");
 	private static Text resultValue = new Text("");
 	
+	private Rengine getREngine(){
+		/**
+		 * R engine test
+		 */
+		// just making sure we have the right version of everything
+		if (!Rengine.versionCheck()) {
+		    System.err.println("** Version mismatch - Java files don't match library version.");
+		    System.exit(1);
+		}
+        System.out.println("Creating Rengine (with arguments)");
+		// 1) we pass the arguments from the command line
+		// 2) we won't use the main loop at first, we'll start it later
+		//    (that's the "false" as second argument)
+		// 3) the callbacks are implemented by the TextConsole class above
+		Rengine re=new Rengine(new String[] { "--vanilla" }, false, null);
+        System.out.println("Rengine created, waiting for R");
+		// the engine creates R is a new thread, so we should wait until it's ready
+        if (!re.waitForR()) {
+            System.out.println("Cannot load R");
+            return null;
+        }
+        return re;
+	}
+	
 	public void reduce(Text key, Iterable<DoubleArrayWritable> values,  Context context) 
+			throws IOException, InterruptedException {
+		
+		Rengine re = getREngine();
+		
+        /**
+	     * using Rlang for pca
+	     */
+        //每个元素都是一个数组，每个数组有7个特征值
+		List<double[]> valueList = new ArrayList<>();
+		
+		for (DoubleArrayWritable val : values) {
+			DoubleWritable[] temp = (DoubleWritable[]) val.toArray();
+			int length = temp.length;
+			double[] eigenValueArray = new double[length-1];
+			//省略第一列的时间
+			for (int i = 0; i < length - 1; i++){
+				eigenValueArray[i] = temp[i+1].get();
+			}
+			valueList.add(eigenValueArray);
+		}
+		
+		long[] la = new long[valueList.size()];
+		for (int i = 0; i < valueList.size(); i++){
+			long temp = re.rniPutDoubleArray(valueList.get(i));
+			la[i] = temp;
+		}
+		
+		long xp5 = re.rniPutVector(la);
+		
+        re.rniAssign("b", xp5, 0);
+        re.eval("b <- data.frame(b)");
+        
+        System.out.println("start of b test >>>>>>>>>>>>>>>>");
+        System.out.print("b's length is >>>>>>>>>>>>>>>>  ");
+        REXP b = re.eval("length(b)");
+        System.out.println(b);
+        System.out.println("b pca is >>>>>>>>>>>>>>>>");
+        REXP pca;
+        REXP pcaPredict;
+        System.out.println("b pca predict is >>>>>>>>>>>>>>>>");
+        pcaPredict = re.eval("predict(prcomp(b))");
+        /**
+         * pca predict是一个一维度数组
+         * predict是特征向量矩阵，为 7*7矩阵
+         * 比如可以只取前2列，然后7*2矩阵和原来的矩阵相乘得到最后结果
+         */
+        double[] pcaResultArray = pcaPredict.asDoubleArray();
+        
+        //贡献率
+        System.out.println("b pca contribution is >>>>>>>>>>>>>>>>");
+        System.out.println(pca=re.eval("summary(prcomp(b))$importance[3,]"));
+        double[] pcaContributionArray = pca.asDoubleArray();
+        System.out.println("");
+        System.out.println("end of b test >>>>>>>>>>>>>>>>");
+	   
+        re.end();
+	    System.out.println("r engine end");
+	    
+	    double contribution = 0;
+	    int count = 0;
+	    for (int i = 0; i < pcaContributionArray.length; i++){
+	    	contribution += pcaContributionArray[i];
+	    	if (contribution > 0.9){
+	    		count = i;
+	    		break;
+	    	}
+	    }
+	    
+	    //取前count列的特征向量，得到 7 * count的矩阵 
+	    double[][] pcaResultTwoDimension = new double[EIGENVALUECOUNT][count+1];
+	    for (int i = 0; i < EIGENVALUECOUNT; i++){
+	    	for (int j = 0; j < count + 1; j++){
+	    		if (i * 7 + j < pcaResultArray.length){
+	    			pcaResultTwoDimension[i][j] = pcaResultArray[i*7+j];
+	    		}
+	    	}
+	    }
+	    //打印前index列的pca predict特征值结果
+	    MP.println("pca predict result is: ");
+	    for (int i = 0; i < EIGENVALUECOUNT; i++){
+	    	for (int j = 0; j < count + 1; j++){
+	    		MP.print(pcaResultTwoDimension[i][j] + "  ");
+	    	}
+	    	MP.println();
+	    }
+	    
+	    //原始矩阵和特征向量矩阵相乘
+	    Matrix finalData = DenseMatrix.Factory.zeros(valueList.size(), count + 1);
+	    double[][] originData = new double[valueList.size()][EIGENVALUECOUNT];
+	    for (int i = 0; i < valueList.size(); i++){
+	    	for (int j = 0; j < EIGENVALUECOUNT; j++){
+	    		originData[i][j] = valueList.get(i)[j];
+	    	}
+	    }
+	    Matrix originMatrix = Matrix.Factory.linkToArray(originData);
+	    Matrix eigenMatrix = Matrix.Factory.linkToArray(pcaResultTwoDimension);
+	    finalData = originMatrix.mtimes(eigenMatrix);
+	    
+	    MP.println("final data is:");
+		MP.println(finalData);
+		
+	    // TODO 把pca的结果作为reducer的输出
+		
+	}
+	
+	
+	public void __reduce(Text key, Iterable<DoubleArrayWritable> values,  Context context) 
 			throws IOException, InterruptedException {
 		
 		List<Double> RMSList = new ArrayList<>();
@@ -56,7 +193,7 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 		List<DoubleWritable[]> valueList = new ArrayList<>();
 		
 		for (DoubleArrayWritable val : values) {
-			//链表每一个元素都是数组
+			//链表每一个元素都是数组，数组有8个元素，第一个是时间
 			DoubleWritable[] temp = (DoubleWritable[]) val.toArray();
 			valueList.add(temp);
 			length++;

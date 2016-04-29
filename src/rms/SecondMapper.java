@@ -10,7 +10,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import utils.DoubleArrayWritable;
 import utils.MP;
 
-public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArrayWritable>  {
+public class SecondMapper extends Mapper<LongWritable, Text, Text, DoubleArrayWritable>  {
 	
 	//传二维数组给reducer
 	private DoubleArrayWritable resultValue = null;
@@ -20,6 +20,7 @@ public class SecondJobMapper extends Mapper<LongWritable, Text, Text, DoubleArra
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 	  throws IOException, InterruptedException {
+		
 		// a. 分隔一行
 		String s = value.toString();
 		String[] values = s.split(",");

@@ -12,7 +12,9 @@ public class Average {
 		 for(int i = 0;i < num;i++){
 			 sum += list.get(i);
 		 }
+		 MP.closeDebug();
 		 MP.println("sum is " + sum);
+		 MP.debug();
 		 return (double)(sum / num);
 	 }
 

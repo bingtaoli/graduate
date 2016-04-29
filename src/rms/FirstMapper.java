@@ -8,7 +8,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class CSVCombineFileMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
 	
 	/**
 	 * 多文件会初始化很多次map类
@@ -20,7 +20,7 @@ public class CSVCombineFileMapper extends Mapper<LongWritable, Text, Text, Doubl
 	public static int number = 0;
 	public int index = -1;
 	
-	public CSVCombineFileMapper() {
+	public FirstMapper() {
 		// TODO Auto-generated constructor stub
 		System.out.println("create a mapper>>>>>>>> NO: " + number);
 		index = number;

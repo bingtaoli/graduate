@@ -18,7 +18,7 @@ import utils.MP;
  */
 public class Pca {
 	
-	private static double PRECISE = 0.8;
+	private static double PRECISE = 1;
 	
 	/**
 	 * pca主要是三步
@@ -31,7 +31,7 @@ public class Pca {
 	 */
 	public static double[][] calculate(double[][] array){
 		
-		MP.closeDebug();
+		//MP.closeDebug();
 		
 		//1. 特征中心化。即每一维的数据都减去该维的均值
 		for (int i = 0; i < array.length; i++){

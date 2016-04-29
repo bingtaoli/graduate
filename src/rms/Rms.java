@@ -46,9 +46,9 @@ public class Rms {
 	     */
 		Job job = Job.getInstance(conf, "first job");
 	    job.setJarByClass(Rms.class);
-	    job.setInputFormatClass(CSVCombineFileInputFormat.class);
-	    job.setMapperClass(CSVCombineFileMapper.class);
-	    job.setReducerClass(CSVReducer.class);
+	    job.setInputFormatClass(MyCombineFileInputFormat.class);
+	    job.setMapperClass(FirstMapper.class);
+	    job.setReducerClass(FirstReducer.class);
 	    job.setOutputKeyClass(Text.class);
 	    job.setOutputValueClass(DoubleWritable.class);
 	    FileInputFormat.setInputPaths(job, new Path(args[0]));
@@ -61,8 +61,8 @@ public class Rms {
 	    Configuration conf2 = new Configuration();
         Job job2 = Job.getInstance(conf2, "second job");
 	    job2.setJarByClass(Rms.class);
-	    job2.setInputFormatClass(CSVCombineFileInputFormat.class);
-	    job2.setMapperClass(SecondJobMapper.class);
+	    job2.setInputFormatClass(MyCombineFileInputFormat.class);
+	    job2.setMapperClass(SecondMapper.class);
 	    job2.setReducerClass(SecondReducer.class);
 	    job2.setOutputKeyClass(Text.class);
 	    job2.setOutputValueClass(DoubleArrayWritable.class);
