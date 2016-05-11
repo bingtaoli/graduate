@@ -163,7 +163,25 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 		MP.println(finalData);
 		
 	    // TODO 把pca的结果作为reducer的输出
-		
+		double[][] result = finalData.toDoubleArray();
+		//数组encode成str
+	    String encodedStr = ArrayToStr.encodeTwoDimensionArray(result);
+	    
+	    //写进数据库中
+	    Mysql db = new Mysql("test", "root");
+	    db.initConnection();
+	    //do not missing ' ' to wrap encodeStr
+	    String sql = "insert into hadoop(pcaResult) " + "values ('" + encodedStr + "');";
+	    
+	    try {
+	    	MP.println("execute sql: " + sql);
+			db.getStmt().executeUpdate(sql);
+			MP.println("insert to db  success success success!!");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			MP.println("insert to db failure failure failure :(");
+			e.printStackTrace();
+		}
 	}
 	
 	
