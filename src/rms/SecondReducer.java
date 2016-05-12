@@ -161,27 +161,42 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 	    MP.println("final pca data is:");
 		MP.println(finalData);
 		
+		
+		double[][] result = finalData.toDoubleArray();
 		/**
 		 * 写进数据库中
 		 */
-		double[][] result = finalData.toDoubleArray();
-		//数组encode成str
-	    String encodedStr = ArrayToStr.encodeTwoDimensionArray(result);
-	    Mysql db = new Mysql("test", "root");
-	    db.initConnection();
-	    //do not missing ' ' to wrap encodeStr
-	    String sql = "insert into hadoop(pcaResult) " + "values ('" + encodedStr + "');";
-	    try {
-	    	MP.logln("execute sql: " + sql, false);
-			db.getStmt().executeUpdate(sql);
-			MP.logln("insert to db  success success success!!", false);
-		} catch (SQLException e) {
-			MP.println("insert to db failure failure failure :(");
-			e.printStackTrace();
+//		String encodedStr = ArrayToStr.encodeTwoDimensionArray(result); //数组encode成str
+//	    Mysql db = new Mysql("test", "root");
+//	    db.initConnection();
+//	    String sql = "insert into hadoop(pcaResult) " + "values ('" + encodedStr + "');"; //NO MISSING ' '
+//	    try {
+//	    	MP.logln("execute sql: " + sql, false);
+//			db.getStmt().executeUpdate(sql);
+//			MP.logln("insert to db  success success success!!", false);
+//		} catch (SQLException e) {
+//			MP.println("insert to db failure failure failure :(");
+//			e.printStackTrace();
+//		} finally {
+//			db.close();
+//		}
+//	    
+	    //把pca结果写入csv文件，便于分析走势
+	    Configuration conf = new Configuration();
+		FileSystem hdfs = FileSystem.get(conf);
+		Path outputdir = new Path("/output/pcaresult.txt");
+		FSDataOutputStream out = hdfs.create(outputdir);
+		//out.writeBytes("pca result: \n");
+		String s;
+		for (int i = 0; i < result.length; i++){
+			s = "";
+			for (int j = 0; j < result[i].length - 1; j++){
+				s += result[i][j] + ",";
+			}
+			//最后一列不加逗号
+			s += result[i][result[i].length - 1];
+			out.writeBytes(s + "\n");
 		}
-	    
-	    //TODO 把pca结果写入csv文件，便于分析走势
-	    
 	    
 	    // TODO 把pca的结果作为reducer的输出
 	    
