@@ -25,13 +25,14 @@ import utils.DoubleArrayWritable;
 import utils.MP;
 
 /**
- * 第二个job输出是pca后得到的矩阵
  * @author matthew
- * 
+ * 第二个job输出是pca后得到的矩阵
+ * eigen value: 特征值
  */
 public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
 	
 	public static int EIGENVALUECOUNT = 7;  //特征值个数
+	public static double PCAPRECISE = 0.9;
 	
 	private static Text resultKey = new Text("");
 	private static Text resultValue = new Text("");
@@ -65,9 +66,7 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 		
 		Rengine re = getREngine();
 		
-        /**
-	     * using Rlang for pca
-	     */
+      
         //每个元素都是一个数组，每个数组有7个特征值
 		List<double[]> valueList = new ArrayList<>();
 		
@@ -82,48 +81,46 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 			valueList.add(eigenValueArray);
 		}
 		
+		/**
+	     * using Rlang for pca
+	     */
+		//la是特征值二维矩阵
 		long[] la = new long[valueList.size()];
 		for (int i = 0; i < valueList.size(); i++){
 			long temp = re.rniPutDoubleArray(valueList.get(i));
 			la[i] = temp;
 		}
-		
+		//把特征值矩阵赋给re中的变量
 		long xp5 = re.rniPutVector(la);
-		
-        re.rniAssign("b", xp5, 0);
-        re.eval("b <- data.frame(b)");
-        
-        System.out.println("start of b test >>>>>>>>>>>>>>>>");
-        System.out.print("b's length is >>>>>>>>>>>>>>>>  ");
-        REXP b = re.eval("length(b)");
-        System.out.println(b);
-        System.out.println("b pca is >>>>>>>>>>>>>>>>");
+        re.rniAssign("eigen", xp5, 0);
+        re.eval("eigen <- data.frame(eigen)");
+        MP.log("eigen's length is: ");
+        REXP eigen = re.eval("length(eigen)");
+        MP.logln(eigen);
         REXP pca;
         REXP pcaPredict;
-        System.out.println("b pca predict is >>>>>>>>>>>>>>>>");
-        pcaPredict = re.eval("predict(prcomp(b))");
+        pcaPredict = re.eval("predict(prcomp(eigen))");
         /**
          * pca predict是一个一维度数组
          * predict是特征向量矩阵，为 7*7矩阵
          * 比如可以只取前2列，然后7*2矩阵和原来的矩阵相乘得到最后结果
          */
         double[] pcaResultArray = pcaPredict.asDoubleArray();
-        
         //贡献率
-        System.out.println("b pca contribution is >>>>>>>>>>>>>>>>");
-        System.out.println(pca=re.eval("summary(prcomp(b))$importance[3,]"));
+        MP.logln("eigen pca contribution is: ");
+        MP.logln(pca=re.eval("summary(prcomp(eigen))$importance[3,]"));
         double[] pcaContributionArray = pca.asDoubleArray();
-        System.out.println("");
-        System.out.println("end of b test >>>>>>>>>>>>>>>>");
 	   
         re.end();
-	    System.out.println("r engine end");
+	    MP.println("r engine end");
+	    MP.println("");
 	    
 	    double contribution = 0;
 	    int count = 0;
 	    for (int i = 0; i < pcaContributionArray.length; i++){
 	    	contribution += pcaContributionArray[i];
-	    	if (contribution > 0.9){
+	    	//贡献率达到精确度要求
+	    	if (contribution > PCAPRECISE){
 	    		count = i;
 	    		break;
 	    	}
@@ -133,12 +130,13 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 	    double[][] pcaResultTwoDimension = new double[EIGENVALUECOUNT][count+1];
 	    for (int i = 0; i < EIGENVALUECOUNT; i++){
 	    	for (int j = 0; j < count + 1; j++){
-	    		if (i * 7 + j < pcaResultArray.length){
+	    		if (i * EIGENVALUECOUNT + j < pcaResultArray.length){
 	    			pcaResultTwoDimension[i][j] = pcaResultArray[i*7+j];
 	    		}
 	    	}
 	    }
 	    //打印前index列的pca predict特征值结果
+	    //现在的到的结果为特征矩阵的前count列
 	    MP.println("pca predict result is: ");
 	    for (int i = 0; i < EIGENVALUECOUNT; i++){
 	    	for (int j = 0; j < count + 1; j++){
@@ -159,29 +157,34 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 	    Matrix eigenMatrix = Matrix.Factory.linkToArray(pcaResultTwoDimension);
 	    finalData = originMatrix.mtimes(eigenMatrix);
 	    
-	    MP.println("final data is:");
+	    MP.println("");
+	    MP.println("final pca data is:");
 		MP.println(finalData);
 		
-	    // TODO 把pca的结果作为reducer的输出
+		/**
+		 * 写进数据库中
+		 */
 		double[][] result = finalData.toDoubleArray();
 		//数组encode成str
 	    String encodedStr = ArrayToStr.encodeTwoDimensionArray(result);
-	    
-	    //写进数据库中
 	    Mysql db = new Mysql("test", "root");
 	    db.initConnection();
 	    //do not missing ' ' to wrap encodeStr
 	    String sql = "insert into hadoop(pcaResult) " + "values ('" + encodedStr + "');";
-	    
 	    try {
-	    	MP.println("execute sql: " + sql);
+	    	MP.logln("execute sql: " + sql, false);
 			db.getStmt().executeUpdate(sql);
-			MP.println("insert to db  success success success!!");
+			MP.logln("insert to db  success success success!!", false);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			MP.println("insert to db failure failure failure :(");
 			e.printStackTrace();
 		}
+	    
+	    //TODO 把pca结果写入csv文件，便于分析走势
+	    
+	    
+	    // TODO 把pca的结果作为reducer的输出
+	    
 	}
 	
 	

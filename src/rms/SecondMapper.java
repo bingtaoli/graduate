@@ -40,13 +40,10 @@ public class SecondMapper extends Mapper<LongWritable, Text, Text, DoubleArrayWr
 		}
 		//not static
 		resultValue = new DoubleArrayWritable(arr);
-		MP.closeDebug();
-		MP.println("result value is:" );
+		MP.logln("result value is:", false);
 		for (int i = 0; i < arr.length; i++){
-			MP.print(arr[i] + " ");
+			MP.log(arr[i] + " ", false);
 		}
-		MP.println();
-		MP.debug();
 		context.write(resultKey, resultValue);
 	}
 	

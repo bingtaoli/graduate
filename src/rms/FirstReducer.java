@@ -20,7 +20,7 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 	public static double costMapperTime = 0;
 
 	protected void finalize(){
-		System.out.println(">>>>>>>>>end of reducer");
+		MP.logln(">>>>>>>>>end of reducer");
 	}
 
 	//先求和均值差的平方和
@@ -48,7 +48,7 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 			valueList.add(val.get());
 		}
 		double tempAverage = Average.getListAverage(valueList);
-		MP.println("temp average is " + tempAverage);
+		//MP.println("temp average is " + tempAverage);
 		double sigma = getListStandardDevition(valueList, tempAverage);
 		//踢除奇异点
 		//a.第一行特殊处理
@@ -63,7 +63,7 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		}
 		//更新均值
 		double AVERAGE = Average.getListAverage(valueList);
-		MP.println("average is " + AVERAGE);
+		//MP.println("average is " + AVERAGE);
 		//均方根
 		//a.平方和
 		for (int i = 0; i < valueList.size(); i++){

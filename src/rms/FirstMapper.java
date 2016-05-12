@@ -8,6 +8,8 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+import utils.MP;
+
 public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
 	
 	/**
@@ -21,14 +23,13 @@ public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable
 	public int index = -1;
 	
 	public FirstMapper() {
-		// TODO Auto-generated constructor stub
-		System.out.println("create a mapper>>>>>>>> NO: " + number);
+		MP.logln("create a mapper>>>>>>>> NO: " + number);
 		index = number;
 		number++;
 	}
 	
 	protected void finalize(){
-		System.out.println(">>>>>>>>>end of mapper NO:" + index);
+		MP.logln(">>>>>>>>>end of mapper NO:" + index);
 	}
 	
 	@Override
