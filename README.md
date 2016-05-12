@@ -4,9 +4,25 @@
 
 本毕业设计使用hadoop平台跑算法，支持并行处理、分布式、对超大文件的支持。
 
-hadoop平台在传统工业的应用不是很广泛，所以希望能够有好的结局 :)
+## map reduce
 
-### 具体实现
+**PCA处理**:
+
+FirstMapper: 把csv文件读入，输出`<time, double>`，time为int，但是作为str，double为倒数第二列的值。
+
+FirstReducer: 得到`<time, iterator<double>>`，处理iterator，得到倒数第二列，处理得到7个特征值，输出`<time, eigens-str>`
+
+SecondMapper: 把第一个job的输出文件读入，输出`<"second", eigen-arr-writable>`
+
+SecondReducer: 输入`<"second", iterator<eigen-arr-writable>>`，输出pca。
+
+**EMD处理**:
+
+FirstMapper: 把csv文件读入，输出`<time, double>`，time为int，但是作为str。double为倒数第二列的值。
+
+FirstReducer: 得到`<time, iterator<double>>`，处理iterator，得到倒数第二列，进行`emd`处理。得到imf，再求边际谱。
+
+## jobs
 
 由于步骤比较多，并且需要层层向下，所以采用多个job来实现。
 
@@ -18,11 +34,11 @@ hadoop平台在传统工业的应用不是很广泛，所以希望能够有好�
 
 对第一个job得到的7个特征值进行pca降维。
 
-### 调用RJava进行数据处理
+## 调用RJava进行数据处理
 
 使用rjava进行数据处理，比如PCA
 
-### R分析结果
+## R分析结果
 
 比如分析pca的走势，在secondJob中把R处理得到的pca结果输出到了HDFS中的一个csv文件。我们使用R去绘图查看走势。`read.csv(file, header = FALSE)`
 

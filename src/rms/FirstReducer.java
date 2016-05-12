@@ -9,7 +9,7 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import algorithm.Average;
+import algorithm.Common;
 import utils.MP;
 import utils.MyString;
 
@@ -22,18 +22,6 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 	protected void finalize(){
 		MP.logln(">>>>>>>>>end of reducer");
 	}
-
-	//先求和均值差的平方和
-	//除N
-	//开方
-	public double getListStandardDevition(List<Double> list, double average){
-		int num = list.size();
-        double sum = 0;
-        for(int i = 0;i < num;i++){
-        	sum += Math.pow(list.get(i) - average, 2);
-        }
-        return Math.sqrt(sum / num);
-    }
 	
 	//输入是时间--每一行倒数第二列的double值
 	public void reduce(Text key, Iterable<DoubleWritable> values,  Context context) 
@@ -47,9 +35,9 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		for (DoubleWritable val : values) {
 			valueList.add(val.get());
 		}
-		double tempAverage = Average.getListAverage(valueList);
+		double tempAverage = Common.getListAverage(valueList);
 		//MP.println("temp average is " + tempAverage);
-		double sigma = getListStandardDevition(valueList, tempAverage);
+		double sigma = Common.getListStandardDevition(valueList, tempAverage);
 		//踢除奇异点
 		//a.第一行特殊处理
 		if ( Math.abs(valueList.get(0) - tempAverage)  >= 3*sigma ){
@@ -62,7 +50,7 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 			}
 		}
 		//更新均值
-		double AVERAGE = Average.getListAverage(valueList);
+		double AVERAGE = Common.getListAverage(valueList);
 		//MP.println("average is " + AVERAGE);
 		//均方根
 		//a.平方和

@@ -45,6 +45,7 @@ public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable
 		 * 现在cost: 4.762
 		 */
 		String time;
+		//时间，垂直信号，水平信号
 		if (values.length >= 5){
 			//增加一个逗号，方便后面split
 			time =  String.format("%02d%02d%02d,", Integer.valueOf(values[0]) ,
