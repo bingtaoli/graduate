@@ -22,6 +22,27 @@ FirstMapper: 把csv文件读入，输出`<time, double>`，time为int，但是�
 
 FirstReducer: 得到`<time, iterator<double>>`，处理iterator，得到倒数第二列，进行`emd`处理。得到imf，再求边际谱。
 
+emd样例:
+
+```r
+ndata <- 3000
+tt22 <- seq(0, 9, length=ndata)
+xt22 <- sin(pi * tt22) + sin(2* pi * tt22) + sin(6 * pi * tt22) 
+
+par(mfrow=c(3,1), mar=c(2,1,2,1))
+try22 <- emd(xt22, tt22, boundary="none")
+
+# Ploting the IMF's
+par(mfrow=c(try22$nimf+1, 1), mar=c(2,3,2,1))
+rangeimf <- c(-3, 3) #range(c(xt22, try22$imf))
+plot(tt22, xt22, type="l", xlab="", ylab="", ylim=rangeimf, main="Signal")
+for(i in 1:try22$nimf) {
+    plot(tt22, try22$imf[,i], type="l", xlab="", ylab="", ylim=rangeimf,
+    main=paste("IMF ", i, sep="")); abline(h=0)
+}
+```
+
+
 ## jobs
 
 由于步骤比较多，并且需要层层向下，所以采用多个job来实现。

@@ -36,7 +36,6 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 			valueList.add(val.get());
 		}
 		double tempAverage = Common.getListAverage(valueList);
-		//MP.println("temp average is " + tempAverage);
 		double sigma = Common.getListStandardDevition(valueList, tempAverage);
 		//踢除奇异点
 		//a.第一行特殊处理
