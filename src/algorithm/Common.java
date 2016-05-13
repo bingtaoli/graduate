@@ -28,5 +28,17 @@ public class Common {
         }
         return Math.sqrt(sum / num);
     }
+	
+	public static double maxOfArray(double[] array){
+		if (array.length == 0){
+			return 0;
+		}
+		double max = array[0];
+		for (int i = 0; i < array.length; i++){
+			max = Math.max(max, array[i]);
+		}
+		MP.logln("max is: " + max, false);
+		return max;
+	}
 
 }

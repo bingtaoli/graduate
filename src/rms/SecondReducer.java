@@ -23,6 +23,7 @@ import algorithm.Pca;
 import utils.ArrayToStr;
 import utils.DoubleArrayWritable;
 import utils.MP;
+import utils.MyR;
 
 /**
  * @author matthew
@@ -37,36 +38,11 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 	private static Text resultKey = new Text("");
 	private static Text resultValue = new Text("");
 	
-	private Rengine getREngine(){
-		/**
-		 * R engine test
-		 */
-		// just making sure we have the right version of everything
-		if (!Rengine.versionCheck()) {
-		    System.err.println("** Version mismatch - Java files don't match library version.");
-		    System.exit(1);
-		}
-        System.out.println("Creating Rengine (with arguments)");
-		// 1) we pass the arguments from the command line
-		// 2) we won't use the main loop at first, we'll start it later
-		//    (that's the "false" as second argument)
-		// 3) the callbacks are implemented by the TextConsole class above
-		Rengine re=new Rengine(new String[] { "--vanilla" }, false, null);
-        System.out.println("Rengine created, waiting for R");
-		// the engine creates R is a new thread, so we should wait until it's ready
-        if (!re.waitForR()) {
-            System.out.println("Cannot load R");
-            return null;
-        }
-        return re;
-	}
-	
 	public void reduce(Text key, Iterable<DoubleArrayWritable> values,  Context context) 
 			throws IOException, InterruptedException {
 		
-		Rengine re = getREngine();
+		Rengine re = MyR.getREngine();
 		
-      
         //每个元素都是一个数组，每个数组有7个特征值
 		List<double[]> valueList = new ArrayList<>();
 		
@@ -101,7 +77,7 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
         REXP pcaPredict;
         pcaPredict = re.eval("predict(prcomp(eigen))");
         /**
-         * pca predict是一个一维度数组
+         * pca predict是一个一维度数组，其实这个一维数组包含了几维的数据
          * predict是特征向量矩阵，为 7*7矩阵
          * 比如可以只取前2列，然后7*2矩阵和原来的矩阵相乘得到最后结果
          */
@@ -160,7 +136,6 @@ public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text
 	    MP.println("");
 	    MP.println("final pca data is:");
 		MP.println(finalData);
-		
 		
 		double[][] result = finalData.toDoubleArray();
 		/**

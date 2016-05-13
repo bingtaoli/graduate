@@ -42,33 +42,47 @@ public class Rms {
 	    }
 	    
 	    /**
-	     * first job 
+	     * PCA first job 
 	     */
-		Job job = Job.getInstance(conf, "first job");
-	    job.setJarByClass(Rms.class);
-	    job.setInputFormatClass(MyCombineFileInputFormat.class);
-	    job.setMapperClass(FirstMapper.class);
-	    job.setReducerClass(FirstReducer.class);
-	    job.setOutputKeyClass(Text.class);
-	    job.setOutputValueClass(DoubleWritable.class);
-	    FileInputFormat.setInputPaths(job, new Path(args[0]));
-	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-	    job.waitForCompletion(true);
+//		Job job = Job.getInstance(conf, "pca first job");
+//	    job.setJarByClass(Rms.class);
+//	    job.setInputFormatClass(MyCombineFileInputFormat.class);
+//	    job.setMapperClass(FirstMapper.class);
+//	    job.setReducerClass(FirstReducer.class);
+//	    job.setOutputKeyClass(Text.class);
+//	    job.setOutputValueClass(DoubleWritable.class);
+//	    FileInputFormat.setInputPaths(job, new Path(args[0]));
+//	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+//	    job.waitForCompletion(true);
+//        
+//	    /**
+//	     * PCA second job
+//	     */
+//        Job job2 = Job.getInstance(conf, "pca second job");
+//	    job2.setJarByClass(Rms.class);
+//	    job2.setInputFormatClass(MyCombineFileInputFormat.class);
+//	    job2.setMapperClass(SecondMapper.class);
+//	    job2.setReducerClass(SecondReducer.class);
+//	    job2.setOutputKeyClass(Text.class);
+//	    job2.setOutputValueClass(DoubleArrayWritable.class);
+//        FileInputFormat.addInputPath(job2, new Path(args[1]));
+//        FileOutputFormat.setOutputPath(job2, new Path(args[2]) );
+//        job2.waitForCompletion(true);
         
-	    /**
-	     * second job
-	     */
-	    Configuration conf2 = new Configuration();
-        Job job2 = Job.getInstance(conf2, "second job");
-	    job2.setJarByClass(Rms.class);
-	    job2.setInputFormatClass(MyCombineFileInputFormat.class);
-	    job2.setMapperClass(SecondMapper.class);
-	    job2.setReducerClass(SecondReducer.class);
-	    job2.setOutputKeyClass(Text.class);
-	    job2.setOutputValueClass(DoubleArrayWritable.class);
-        FileInputFormat.addInputPath(job2, new Path(args[1]));
-        FileOutputFormat.setOutputPath(job2, new Path(args[2]) );
-        job2.waitForCompletion(true);
+        /**
+         * EMD
+         */
+        Job emdJob = Job.getInstance(conf, "pca first job");
+        emdJob.setJarByClass(Rms.class);
+        emdJob.setInputFormatClass(MyCombineFileInputFormat.class);
+        emdJob.setMapperClass(FirstMapper.class);
+        emdJob.setReducerClass(EmdReducer.class);
+        //emdJob.setNumReduceTasks(0);
+        emdJob.setOutputKeyClass(Text.class);
+        emdJob.setOutputValueClass(DoubleWritable.class);
+	    FileInputFormat.setInputPaths(emdJob, new Path(args[0]));
+	    FileOutputFormat.setOutputPath(emdJob, new Path(args[1]));
+	    emdJob.waitForCompletion(true);
         
 	    System.out.println("cost time: " + MyTimer.getCost("all") / 1000 + "s");
 	    System.exit(1);

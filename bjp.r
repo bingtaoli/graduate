@@ -20,7 +20,6 @@ toimageResult <- matrix(data=0, nrow=400, ncol=originDataLength)
 for (i in 1:originDataLength){
     freq <- insfreq[i]
     toimageResult[freq, i] = amplitude[i]
-    #cat(freq, " ", i, " is ", amplitude[i], "\n")
 }
 #求sum
 bjp <- array(1:400)
