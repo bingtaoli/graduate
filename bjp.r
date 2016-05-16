@@ -1,7 +1,7 @@
 library(EMD)
 library(signal)
 
-ampfreq <- read.csv('/Users/libingtao/graduate/emdresult.txt', header=FALSE)
+ampfreq <- read.csv('/Users/libingtao/graduate/hilbertresult.txt', header=FALSE)
 amplitude <- ampfreq[,1]
 insfreq <- ampfreq[,2]
 originDataLength <- length(amplitude)
@@ -35,3 +35,4 @@ plot(xx, bjp, type='l')
 hir <- interp1(xx, bjp, 221)
 hor <- interp1(xx, bjp, 168)
 hbr <- interp1(xx, bjp, 215.48)
+

@@ -122,13 +122,15 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 				return;
 			}
 			
+			// put hilbert result to hdfs csv file for analysing
 			String s;
 			for (int i = 0; i < ampArray.length; i++){
 				s = "" + ampArray[i] + ", " + freqArray[i];
 				hilbertResultOut.writeBytes(s + "\n");
 			}
 			
-			re.eval("bigger <- floor(400/max(insfreq, na.rm=TRUE))"); //放大倍数
+			//放大倍数：把频率从0~1的归一化结果放大到0~400
+			re.eval("bigger <- floor(400/max(insfreq, na.rm=TRUE))"); 
 			re.eval("dataLength <- " + originDataLength);
 			re.eval("for (i in 1:dataLength) {"
 					+ " if (is.na(insfreq[i])) {insfreq[i] = 0} "
@@ -151,8 +153,8 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 			
 			
 			MP.logln("hir is: " + re.eval("hir"));
-			MP.logln("hor is: " + re.eval("hor"));
-			MP.logln("hbr is: " + re.eval("hbr"));
+			MP.logln("hor is: " + re.eval("hor"), 0);
+			MP.logln("hbr is: " + re.eval("hbr"), 0);
 			
 			MP.logln("after interp1", false);
 			
@@ -173,11 +175,12 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 		MP.logln("hirMax is: " + hirMax, false);
 		
 		//把结果写入CSV
-		Path outputdir2 = new Path("/output/emdresult.txt");
-		FSDataOutputStream out = hdfs.create(outputdir2);
+		Path outputdir2 = new Path("/output/frequenceAnalyseResult.txt");
+		FSDataOutputStream frequenceAnalyseResultOut = hdfs.create(outputdir2);
 		String s;
 		s = MyString.join(",", key.toString(), hirMax+" ",  horMax+" ",  hbrMax+" ");
-		out.writeBytes(s + "\n");
+		MP.logln("write into csv: " + s + "\n");
+		frequenceAnalyseResultOut.writeBytes(s + "\n");
 		
 		re.end();
 	    MP.println("r engine end");

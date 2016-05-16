@@ -3,8 +3,14 @@ package utils;
 import org.rosuda.JRI.Rengine;
 
 public class MyR {
+	
+	public static Rengine re = null;
 
 	public static Rengine getREngine(){
+		if (re != null){
+			MP.logln("re is already initialized");
+			return re;
+		}
 		/**
 		 * R engine test
 		 */
@@ -25,6 +31,7 @@ public class MyR {
             System.out.println("Cannot load R");
             return null;
         }
+        MyR.re = re;
         return re;
 	}
 	

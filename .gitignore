@@ -2,3 +2,4 @@
 .project
 bin/
 .Rapp.history
+.DS_Store

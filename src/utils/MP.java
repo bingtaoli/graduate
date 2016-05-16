@@ -42,6 +42,11 @@ public class MP {
 			System.out.println(obj);
 		}
 	}
+	public static void logln(Object obj, int print){
+		if (DEBUG && print != 0){
+			System.out.println(obj);
+		}
+	}
 	public static void logln(Object obj){
 		logln(obj, true);
 	}
