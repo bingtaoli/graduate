@@ -8,7 +8,7 @@ public class MyR {
 
 	public static Rengine getREngine(){
 		if (re != null){
-			MP.logln("re is already initialized");
+			MP.logln("re is already initialized", 0);
 			return re;
 		}
 		/**
@@ -31,8 +31,21 @@ public class MyR {
             System.out.println("Cannot load R");
             return null;
         }
+        //load emd library
+      	re.eval("library(EMD)");
+        //load signal library for interp1
+      	re.eval("library(signal)");
+      	
         MyR.re = re;
         return re;
+	}
+	
+	protected void finalize(){
+		if (re != null){
+			re.end();
+		    MP.println("MyR finaliaze: r engine end");
+		    MP.println("");
+		}
 	}
 	
 }
