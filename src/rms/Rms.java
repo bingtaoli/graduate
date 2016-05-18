@@ -9,7 +9,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-import utils.DoubleArrayWritable;
+//import utils.DoubleArrayWritable;
 import utils.MyTimer;
 
 /**
@@ -70,19 +70,34 @@ public class Rms {
 //        job2.waitForCompletion(true);
         
         /**
-         * EMD
+         * EMD Job
          */
-        Job emdJob = Job.getInstance(conf, "pca first job");
-        emdJob.setJarByClass(Rms.class);
-        emdJob.setInputFormatClass(MyCombineFileInputFormat.class);
-        emdJob.setMapperClass(FirstMapper.class);
-        emdJob.setReducerClass(EmdReducer.class);
-        //emdJob.setNumReduceTasks(0);
-        emdJob.setOutputKeyClass(Text.class);
-        emdJob.setOutputValueClass(DoubleWritable.class);
-	    FileInputFormat.setInputPaths(emdJob, new Path(args[0]));
-	    FileOutputFormat.setOutputPath(emdJob, new Path(args[1]));
-	    emdJob.waitForCompletion(true);
+//        Job emdJob = Job.getInstance(conf, "emd job");
+//        emdJob.setJarByClass(Rms.class);
+//        emdJob.setInputFormatClass(MyCombineFileInputFormat.class);
+//        emdJob.setMapperClass(FirstMapper.class);
+//        emdJob.setReducerClass(EmdReducer.class);
+//        //emdJob.setNumReduceTasks(0);
+//        emdJob.setOutputKeyClass(Text.class);
+//        emdJob.setOutputValueClass(DoubleWritable.class);
+//	    FileInputFormat.setInputPaths(emdJob, new Path(args[0]));
+//	    FileOutputFormat.setOutputPath(emdJob, new Path(args[1]));
+//	    emdJob.waitForCompletion(true);
+//	    
+	    /**
+	     * Frequence Job
+	     */
+	    Job frequenceJob = Job.getInstance(conf, "emd job");
+        frequenceJob.setJarByClass(Rms.class);
+        frequenceJob.setInputFormatClass(MyCombineFileInputFormat.class);
+        frequenceJob.setMapperClass(FirstMapper.class);
+        frequenceJob.setReducerClass(FrequenceReducer.class);
+        //frequenceJob.setNumReduceTasks(0);
+        frequenceJob.setOutputKeyClass(Text.class);
+        frequenceJob.setOutputValueClass(DoubleWritable.class);
+	    FileInputFormat.setInputPaths(frequenceJob, new Path(args[0]));
+	    FileOutputFormat.setOutputPath(frequenceJob, new Path(args[1]));
+	    frequenceJob.waitForCompletion(true);
         
 	    System.out.println("cost time: " + MyTimer.getCost("all") / 1000 + "s");
 	    System.exit(1);
