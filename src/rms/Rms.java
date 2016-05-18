@@ -87,30 +87,34 @@ public class Rms {
         /**
          * EMD Job
          */
-//        Job emdJob = Job.getInstance(conf, "emd job");
-//        emdJob.setJarByClass(Rms.class);
-//        emdJob.setInputFormatClass(MyCombineFileInputFormat.class);
-//        emdJob.setMapperClass(EmdMapper.class);
-//        emdJob.setNumReduceTasks(0); //无reduce操作
-//        emdJob.setOutputKeyClass(Text.class);
-//        emdJob.setOutputValueClass(Text.class);
-//	    FileInputFormat.setInputPaths(emdJob, new Path(args[1]));  //file to line job的输出
-//	    FileOutputFormat.setOutputPath(emdJob, new Path(args[4]));
-//	    emdJob.waitForCompletion(true);
-//	    
+        Job emdJob = Job.getInstance(conf, "emd job");
+        emdJob.setJarByClass(Rms.class);
+        emdJob.setInputFormatClass(MyCombineFileInputFormat.class);
+        emdJob.setMapperClass(EmdMapper.class);
+        /**
+         * TODO 现在是可以使用多个reducer的，但是不是并行的，所以希望可以调成并行的
+         */
+        emdJob.setNumReduceTasks(5); //无reduce操作
+        emdJob.setReducerClass(EmdReducer.class);
+        emdJob.setOutputKeyClass(Text.class);
+        emdJob.setOutputValueClass(DoubleArrayWritable.class);
+	    FileInputFormat.setInputPaths(emdJob, new Path(args[1]));  //file to line job的输出
+	    FileOutputFormat.setOutputPath(emdJob, new Path(args[4]));
+	    emdJob.waitForCompletion(true);
+	    
 	    /**
 	     * Frequence Job
 	     */
-	    Job frequenceJob = Job.getInstance(conf, "emd job");
-        frequenceJob.setJarByClass(Rms.class);
-        frequenceJob.setInputFormatClass(MyCombineFileInputFormat.class);
-        frequenceJob.setMapperClass(FrequenceMapper.class);
-        frequenceJob.setNumReduceTasks(0);
-        frequenceJob.setOutputKeyClass(Text.class);
-        frequenceJob.setOutputValueClass(Text.class);
-	    FileInputFormat.setInputPaths(frequenceJob, new Path(args[1])); //file to line job的输出
-	    FileOutputFormat.setOutputPath(frequenceJob, new Path(args[5]));
-	    frequenceJob.waitForCompletion(true);
+//	    Job frequenceJob = Job.getInstance(conf, "emd job");
+//        frequenceJob.setJarByClass(Rms.class);
+//        frequenceJob.setInputFormatClass(MyCombineFileInputFormat.class);
+//        frequenceJob.setMapperClass(FrequenceMapper.class);
+//        frequenceJob.setNumReduceTasks(0);
+//        frequenceJob.setOutputKeyClass(Text.class);
+//        frequenceJob.setOutputValueClass(Text.class);
+//	    FileInputFormat.setInputPaths(frequenceJob, new Path(args[1])); //file to line job的输出
+//	    FileOutputFormat.setOutputPath(frequenceJob, new Path(args[5]));
+//	    frequenceJob.waitForCompletion(true);
         
 	    System.out.println("cost time: " + MyTimer.getCost("all") / 1000 + "s");
 	    System.exit(1);
