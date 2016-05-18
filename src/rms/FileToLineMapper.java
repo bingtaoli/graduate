@@ -3,14 +3,17 @@ package rms;
 import java.io.IOException;
 
 import org.apache.hadoop.io.DoubleWritable;
-//import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import utils.MP;
 
-public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+/**
+ * 把一个csv文件变成一行
+ * @author matthew
+ */
+public class FileToLineMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
 	
 	/**
 	 * 多文件会初始化很多次map类
@@ -22,7 +25,7 @@ public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable
 	public static int number = 0;
 	public int index = -1;
 	
-	public FirstMapper() {
+	public FileToLineMapper() {
 		MP.logln("create a mapper>>>>>>>> NO: " + number);
 		index = number;
 		number++;
@@ -38,12 +41,6 @@ public class FirstMapper extends Mapper<LongWritable, Text, Text, DoubleWritable
 		//把value分隔
 		String s = value.toString();
 		String[] values = s.split(",");
-		/**
-		 * 把time放在循环外面
-		 * 跑100个测试
-		 * 原来cost: 5.299
-		 * 现在cost: 4.762
-		 */
 		String time;
 		//时间，垂直信号，水平信号
 		if (values.length >= 5){

@@ -10,7 +10,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import utils.DoubleArrayWritable;
 import utils.MP;
 
-public class SecondMapper extends Mapper<LongWritable, Text, Text, DoubleArrayWritable>  {
+public class PcaMapper extends Mapper<LongWritable, Text, Text, DoubleArrayWritable>  {
 	
 	//传二维数组给reducer
 	private DoubleArrayWritable resultValue = null;

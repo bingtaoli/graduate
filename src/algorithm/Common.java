@@ -40,5 +40,23 @@ public class Common {
 		MP.logln("max is: " + max, false);
 		return max;
 	}
+	
+	//过滤奇异点
+	public static List<Double> removeBadPoints(List<Double> valueList){
+		double tempAverage = Common.getListAverage(valueList);
+		double sigma = Common.getListStandardDevition(valueList, tempAverage);
+		//踢除奇异点
+		//a.第一行特殊处理
+		if ( Math.abs(valueList.get(0) - tempAverage)  >= 3*sigma ){
+			valueList.set(0, tempAverage);
+		}
+		//b.其他行数
+		for (int i = 1; i < valueList.size(); i++){
+			if ( Math.abs(valueList.get(i) - tempAverage)  >= 3*sigma ){
+				valueList.set(i, valueList.get(i-1));
+			}
+		}
+		return valueList;
+	}
 
 }

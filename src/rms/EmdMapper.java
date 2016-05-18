@@ -8,9 +8,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 
@@ -18,18 +18,14 @@ import algorithm.Common;
 import utils.MP;
 import utils.MyR;
 import utils.MyString;
-import utils.MyTimer;
 
-/**
- * @author matthew
- * 得到`<time, iterator<double>>`，处理iterator，得到倒数第二列，进行`emd`处理。得到imf，再求边际谱。
- *
- */
-public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
+public class EmdMapper extends Mapper<LongWritable, Text, Text, Text> {
 	
 	public static int currentNumber = 1;
 	public static FSDataOutputStream hilbertResultOut = null;
 	public static FSDataOutputStream frequenceAnalyseResultOut = null;
+	public static Text resultKey = new Text();
+	public static Text resultValue = new Text();
 	
 	static {
 		Configuration conf = new Configuration();
@@ -47,45 +43,28 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 		}
 	}
 	
-	//输入是时间--每一行倒数第二列的double值
-	public void reduce(Text key, Iterable<DoubleWritable> values,  Context context) 
-			throws IOException, InterruptedException {
+	//key是行号，value是一行，代表一个csv，9334455, 0.2, 0.3, ...... 大概这个格式
+	@Override
+	protected void map(LongWritable key, Text value, Context context)
+	  throws IOException, InterruptedException {
 		
-		MyTimer.setMark("this_reduce");
-		
-		currentNumber++;
-		MP.logln("current number is: " + currentNumber + "\n");
-		
-		/**
-		 * NOTE 循环不是性能的关键，而是R调用，很慢
-		 * this_reduce: 5177.0
-		 * R_calling: 5174.0
-		 * 也就是说时间基本消耗在了R的调用
-		 */
-		
-		//转换成List
+		//value是一行，包含csv文件的一列
+		String s = value.toString();
+		String[] ss = s.split(",");
+		String time = ss[0];
+		double[] values = new double[ss.length - 1];
+		//不包含时间
+		for (int i = 1; i < ss.length; i++){
+			values[i - 1] = Double.parseDouble(ss[i]);
+		}
+		//TODO 转换成List, 这是历史问题，后续不需要list，直接使用数组就好了
 		List<Double> valueList = new ArrayList<>();
-		for (DoubleWritable val : values) {
-			valueList.add(val.get());
+		for (int i = 0; i < values.length; i++){
+			valueList.add(values[i]);
 		}
 		
-		MyTimer.setMark("remove_bad_points");
-		
-		double tempAverage = Common.getListAverage(valueList);
-		double sigma = Common.getListStandardDevition(valueList, tempAverage);
-		//踢除奇异点
-		//a.第一行特殊处理
-		if ( Math.abs(valueList.get(0) - tempAverage)  >= 3*sigma ){
-			valueList.set(0, tempAverage);
-		}
-		//b.其他行数
-		for (int i = 1; i < valueList.size(); i++){
-			if ( Math.abs(valueList.get(i) - tempAverage)  >= 3*sigma ){
-				valueList.set(i, valueList.get(i-1));
-			}
-		}
-		
-		MP.logln("remove bad points: " + MyTimer.getCost("remove_bad_points"));
+		//踢出奇异点
+		valueList = Common.removeBadPoints(valueList);
 		
 		int originDataLength = valueList.size();
 		/**
@@ -98,8 +77,6 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 			originData[i] = valueList.get(i);
 		}
 		long rOriginVector = re.rniPutDoubleArray(originData);
-		
-		MyTimer.setMark("R_calling");
 		
 		re.rniAssign("originVector", rOriginVector, 0);
 		//NOTE 时间序列暂时为 1:length
@@ -114,8 +91,6 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 		MP.logln("imfs is: " +  re.eval("imfs"), false);
 		REXP imfLengthRexp = re.eval("imfs$nimf");
 		
-		MP.logln("R callings: " + MyTimer.getCost("R_calling"));
-		
 		MP.logln("imf length is: " +  imfLengthRexp);
 		double imfLengthDouble = imfLengthRexp.asDouble();
 		MP.logln("imf length as Double is: " +  imfLengthDouble);
@@ -125,8 +100,6 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 			MP.logln("imf length less than 1, return directly");
 			return;
 		}
-		
-		MP.logln("this reduce: " + MyTimer.getCost("this_reduce"));
 		
 		double[] hir = new double[imfLength - 1];
 		double[] hor = new double[imfLength - 1];
@@ -158,11 +131,11 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 			}
 			
 			// put hilbert result to hdfs csv file for analysing
-//			String s;
-//			for (int i = 0; i < ampArray.length; i++){
-//				s = "" + ampArray[i] + ", " + freqArray[i];
-//				hilbertResultOut.writeBytes(s + "\n");
-//			}
+			String hilbertResult;
+			for (int i = 0; i < ampArray.length; i++){
+				hilbertResult = "" + ampArray[i] + ", " + freqArray[i];
+				hilbertResultOut.writeBytes(hilbertResult + "\n");
+			}
 			
 			//放大倍数：把频率从0~1的归一化结果放大到0~400
 			re.eval("bigger <- floor(400/max(insfreq, na.rm=TRUE))"); 
@@ -210,26 +183,14 @@ public class EmdReducer extends Reducer<Text, DoubleWritable, Text, Text>  {
 		MP.logln("hirMax is: " + hirMax, false);
 		
 		//把结果写入CSV
-		String s;
-		s = MyString.join(",", key.toString(), hirMax+" ",  horMax+" ",  hbrMax+" ");
-		MP.logln("write into csv: " + s + "\n");
-		frequenceAnalyseResultOut.writeBytes(s + "\n");
+		String result;
+		result = MyString.join(",", key.toString(), hirMax+" ",  horMax+" ",  hbrMax+" ");
+		MP.logln("write into csv: " + result + "\n");
+		frequenceAnalyseResultOut.writeBytes(result + "\n");
 		
-	}
-	
-	@SuppressWarnings("unused")
-	private void testEMD(Rengine re, boolean test){
-		if (test){
-			//test emd
-			re.eval("ndata <- 3000");
-			re.eval("tt22 <- seq(0, 9, length=ndata)");
-			MP.logln("ndata is: " +  re.eval("ndata"));
-			re.eval("xt22 <- sin(pi * tt22) + sin(2* pi * tt22) + sin(6 * pi * tt22) ");
-			re.eval("try22 <- emd(xt22, tt22, boundary=\"none\")");
-			MP.logln("try22 is: " +  re.eval("try22"));
-			MP.logln("try22 imfs length is: " +  re.eval("try22$nimf"));
-		}
-		return;
+		resultKey.set(time);
+		resultValue.set(result);
+		context.write(resultKey, resultValue);
 	}
 	
 }

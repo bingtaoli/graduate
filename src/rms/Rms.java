@@ -9,14 +9,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-//import utils.DoubleArrayWritable;
+import utils.DoubleArrayWritable;
 import utils.MyTimer;
 
 /**
- * 耗时记录
- * 100个文件: cost time: 6.348
- * 600个文件: cost time: 8.857
- * 2800个文件: cost time: 27.216
  * 
  * NOTE:
  * job.setOutputKeyClass是针对map输出的结果设定
@@ -36,38 +32,57 @@ public class Rms {
 		 */
 		Configuration conf = new Configuration();
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-	    if (otherArgs.length < 2) {
+		//一个input， 5个输出
+	    if (otherArgs.length < 6) {
 	    	System.err.println("Usage: <in> <out>");
-	    	System.exit(2);
+	    	System.exit(6);
 	    }
 	    
 	    /**
-	     * PCA first job 
+	     * 设想，建立一个新的job，把2080个文件转换成一个文件的2080行
+	     * 然后后续的job都可以以mapper来处理该文件，并且是并行的
+	     * FileToLine job
 	     */
-//		Job job = Job.getInstance(conf, "pca first job");
-//	    job.setJarByClass(Rms.class);
-//	    job.setInputFormatClass(MyCombineFileInputFormat.class);
-//	    job.setMapperClass(FirstMapper.class);
-//	    job.setReducerClass(FirstReducer.class);
-//	    job.setOutputKeyClass(Text.class);
-//	    job.setOutputValueClass(DoubleWritable.class);
-//	    FileInputFormat.setInputPaths(job, new Path(args[0]));
-//	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-//	    job.waitForCompletion(true);
-//        
-//	    /**
-//	     * PCA second job
-//	     */
-//        Job job2 = Job.getInstance(conf, "pca second job");
-//	    job2.setJarByClass(Rms.class);
-//	    job2.setInputFormatClass(MyCombineFileInputFormat.class);
-//	    job2.setMapperClass(SecondMapper.class);
-//	    job2.setReducerClass(SecondReducer.class);
-//	    job2.setOutputKeyClass(Text.class);
-//	    job2.setOutputValueClass(DoubleArrayWritable.class);
-//        FileInputFormat.addInputPath(job2, new Path(args[1]));
-//        FileOutputFormat.setOutputPath(job2, new Path(args[2]) );
-//        job2.waitForCompletion(true);
+		Job fileToLineJob = Job.getInstance(conf, "file to line job");
+	    fileToLineJob.setJarByClass(Rms.class);
+	    fileToLineJob.setInputFormatClass(MyCombineFileInputFormat.class);
+	    fileToLineJob.setMapperClass(FileToLineMapper.class);
+	    fileToLineJob.setReducerClass(FileToLineReducer.class);
+	    fileToLineJob.setOutputKeyClass(Text.class);
+	    fileToLineJob.setOutputValueClass(DoubleWritable.class);
+	    FileInputFormat.setInputPaths(fileToLineJob, new Path(args[0]));
+	    FileOutputFormat.setOutputPath(fileToLineJob, new Path(args[1]));
+	    fileToLineJob.waitForCompletion(true);
+	    
+	    /**
+	     * Time Eigne Job
+	     * 求时间特征量
+	     */
+//	    Job timeEigenJob = Job.getInstance(conf, "time eigen job");
+//	    timeEigenJob.setJarByClass(Rms.class);
+//	    timeEigenJob.setInputFormatClass(MyCombineFileInputFormat.class);
+//	    timeEigenJob.setMapperClass(TimeEigenMapper.class);
+//	    timeEigenJob.setReducerClass(TimeEigenReducer.class);
+//	    timeEigenJob.setOutputKeyClass(Text.class);
+//	    timeEigenJob.setOutputValueClass(Text.class);
+//	    FileInputFormat.setInputPaths(timeEigenJob, new Path(args[1]));
+//	    FileOutputFormat.setOutputPath(timeEigenJob, new Path(args[2]));
+//	    timeEigenJob.waitForCompletion(true);
+	    
+	    /**
+	     * PCA job
+	     * 处理第一个job得到的特征量
+	     */
+//        Job pcaJob = Job.getInstance(conf, "pca job");
+//	    pcaJob.setJarByClass(Rms.class);
+//	    pcaJob.setInputFormatClass(MyCombineFileInputFormat.class);
+//	    pcaJob.setMapperClass(PcaMapper.class);
+//	    pcaJob.setReducerClass(PcaReducer.class);
+//	    pcaJob.setOutputKeyClass(Text.class);
+//	    pcaJob.setOutputValueClass(DoubleArrayWritable.class);
+//        FileInputFormat.addInputPath(pcaJob, new Path(args[2]));  //Time Eigne Job的输出，即时间特征值
+//        FileOutputFormat.setOutputPath(pcaJob, new Path(args[3]) );
+//        pcaJob.waitForCompletion(true);
         
         /**
          * EMD Job
@@ -75,13 +90,12 @@ public class Rms {
 //        Job emdJob = Job.getInstance(conf, "emd job");
 //        emdJob.setJarByClass(Rms.class);
 //        emdJob.setInputFormatClass(MyCombineFileInputFormat.class);
-//        emdJob.setMapperClass(FirstMapper.class);
-//        emdJob.setReducerClass(EmdReducer.class);
-//        //emdJob.setNumReduceTasks(0);
+//        emdJob.setMapperClass(EmdMapper.class);
+//        emdJob.setNumReduceTasks(0); //无reduce操作
 //        emdJob.setOutputKeyClass(Text.class);
-//        emdJob.setOutputValueClass(DoubleWritable.class);
-//	    FileInputFormat.setInputPaths(emdJob, new Path(args[0]));
-//	    FileOutputFormat.setOutputPath(emdJob, new Path(args[1]));
+//        emdJob.setOutputValueClass(Text.class);
+//	    FileInputFormat.setInputPaths(emdJob, new Path(args[1]));  //file to line job的输出
+//	    FileOutputFormat.setOutputPath(emdJob, new Path(args[4]));
 //	    emdJob.waitForCompletion(true);
 //	    
 	    /**
@@ -90,13 +104,12 @@ public class Rms {
 	    Job frequenceJob = Job.getInstance(conf, "emd job");
         frequenceJob.setJarByClass(Rms.class);
         frequenceJob.setInputFormatClass(MyCombineFileInputFormat.class);
-        frequenceJob.setMapperClass(FirstMapper.class);
-        frequenceJob.setReducerClass(FrequenceReducer.class);
-        //frequenceJob.setNumReduceTasks(0);
+        frequenceJob.setMapperClass(FrequenceMapper.class);
+        frequenceJob.setNumReduceTasks(0);
         frequenceJob.setOutputKeyClass(Text.class);
-        frequenceJob.setOutputValueClass(DoubleWritable.class);
-	    FileInputFormat.setInputPaths(frequenceJob, new Path(args[0]));
-	    FileOutputFormat.setOutputPath(frequenceJob, new Path(args[1]));
+        frequenceJob.setOutputValueClass(Text.class);
+	    FileInputFormat.setInputPaths(frequenceJob, new Path(args[1])); //file to line job的输出
+	    FileOutputFormat.setOutputPath(frequenceJob, new Path(args[5]));
 	    frequenceJob.waitForCompletion(true);
         
 	    System.out.println("cost time: " + MyTimer.getCost("all") / 1000 + "s");

@@ -30,7 +30,7 @@ import utils.MyR;
  * 第二个job输出是pca后得到的矩阵
  * eigen value: 特征值
  */
-public class SecondReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
+public class PcaReducer extends Reducer<Text, DoubleArrayWritable, Text, Text> {
 	
 	public static int EIGENVALUECOUNT = 7;  //特征值个数
 	public static double PCAPRECISE = 0.9;

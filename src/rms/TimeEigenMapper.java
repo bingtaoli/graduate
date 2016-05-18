@@ -4,50 +4,50 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.io.DoubleWritable;
-//import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Mapper;
 
 import algorithm.Common;
-import utils.MP;
 import utils.MyString;
 
-public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
+/**
+ * 求时间的7个特征值
+ * 传入的是一行代表一个csv
+ * @author matthew
+ */
+public class TimeEigenMapper extends Mapper<LongWritable, Text, Text, Text> {
 	
-	//private DoubleWritable result = new DoubleWritable();
 	private Text resultArrayString = new Text();
-	public static double costMapperTime = 0;
-
-	protected void finalize(){
-		MP.logln(">>>>>>>>>end of reducer");
-	}
+	private Text outKey = new Text();
 	
-	//输入是时间--每一行倒数第二列的double值
-	public void reduce(Text key, Iterable<DoubleWritable> values,  Context context) 
-			throws IOException, InterruptedException {
+	//key是行号，value是一行，代表一个csv，9334455, 0.2, 0.3, ...... 大概这个格式
+	@Override
+	protected void map(LongWritable key, Text value, Context context)
+	  throws IOException, InterruptedException {
+		
+		//value是一行，包含csv文件的一列
+		String s = value.toString();
+		String[] ss = s.split(",");
+		String time = ss[0];
+		double[] values = new double[ss.length - 1];
+		//不包含时间
+		for (int i = 1; i < ss.length; i++){
+			values[i - 1] = Double.parseDouble(ss[i]);
+		}
+		
+		//TODO 转换成List, 这是历史问题，后续不需要list，直接使用数组就好了
+		List<Double> valueList = new ArrayList<>();
+		for (int i = 0; i < values.length; i++){
+			valueList.add(values[i]);
+		}
+
+		//踢出奇异点
+		valueList = Common.removeBadPoints(valueList);
+		
 		double MAX = 0;
 		double MIN = 0;
 		double RMS = 0;
-		
-		//转换成List
-		List<Double> valueList = new ArrayList<>();
-		for (DoubleWritable val : values) {
-			valueList.add(val.get());
-		}
-		double tempAverage = Common.getListAverage(valueList);
-		double sigma = Common.getListStandardDevition(valueList, tempAverage);
-		//踢除奇异点
-		//a.第一行特殊处理
-		if ( Math.abs(valueList.get(0) - tempAverage)  >= 3*sigma ){
-			valueList.set(0, tempAverage);
-		}
-		//b.其他行数
-		for (int i = 1; i < valueList.size(); i++){
-			if ( Math.abs(valueList.get(i) - tempAverage)  >= 3*sigma ){
-				valueList.set(i, valueList.get(i-1));
-			}
-		}
 		//更新均值
 		double AVERAGE = Common.getListAverage(valueList);
 		//MP.println("average is " + AVERAGE);
@@ -106,7 +106,9 @@ public class FirstReducer extends Reducer<Text, DoubleWritable, Text, Text> {
 		String join = MyString.join(",", String.valueOf(RMS), String.valueOf(XPP), String.valueOf(SF), 
 				String.valueOf(CF), String.valueOf(IF), String.valueOf(CLF), String.valueOf(KV));
 		resultArrayString.set(join);
-	    context.write(key, resultArrayString);
+		outKey.set(time);
+		//把时间--特征值传出
+	    context.write(outKey, resultArrayString);
 	}
-	
+
 }
